@@ -21,10 +21,10 @@ type Memory struct {
 
 //CPU - type for showing CPU usage
 type CPU struct {
-	user		float64
-	nice		float64
-	sys			float64
-	idle		float64
+	user		int
+	nice		int
+	sys			int
+	idle		int
 }
 
 func (m *Memory) parse() *Memory {
@@ -73,19 +73,19 @@ func (cpu *CPU) parse() *CPU {
 	str, _ := fileRead.ReadString(10)
 	str = strings.Trim(str, "cpu ")
 	strSlice := strings.Split(str, " ")
-	cpu.user, err = strconv.ParseFloat(strSlice[0], 64)
+	cpu.user, err = strconv.Atoi(strSlice[0])
 	if err != nil {
 		log.Printf("User CPU parsing error: %v\n", err)
 	}
-	cpu.nice, err = strconv.ParseFloat(strSlice[1], 64)
+	cpu.nice, err = strconv.Atoi(strSlice[1])
 	if err != nil {
 		log.Printf("Nice CPU parsing error: %v\n", err)
 	}
-	cpu.sys, err = strconv.ParseFloat(strSlice[2], 64)
+	cpu.sys, err = strconv.Atoi(strSlice[2])
 	if err != nil {
 		log.Printf("Sys CPU parsing error: %v\n", err)
 	}
-	cpu.idle, err = strconv.ParseFloat(strSlice[3], 64)
+	cpu.idle, err = strconv.Atoi(strSlice[3])
 	if err != nil {
 		log.Printf("IDLE CPU parsing error: %v\n", err)
 	}
@@ -103,8 +103,8 @@ func (cpu *CPU) measureUsage() float64 {
 	cpuDiff.sys = cpuAfter.sys - cpuBefore.sys
 	cpuDiff.nice = cpuAfter.nice - cpuBefore.nice
 	cpuDiff.idle = cpuAfter.idle - cpuBefore.idle
-	avg := (cpuDiff.user + cpuDiff.sys + cpuDiff.nice) /
-				 (cpuDiff.user + cpuDiff.sys + cpuDiff.nice + cpuDiff.idle) * 100.0
+	avg := float64(cpuDiff.user + cpuDiff.sys + cpuDiff.nice) /
+				 float64(cpuDiff.user + cpuDiff.sys + cpuDiff.nice + cpuDiff.idle)*100.0
 	return avg
 }
 
