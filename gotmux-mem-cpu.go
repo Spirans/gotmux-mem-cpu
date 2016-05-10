@@ -25,9 +25,16 @@ type CPU struct {
 	nice		int
 	sys			int
 	idle		int
+	utl			float64
 }
 
-func (m *Memory) parse() *Memory {
+func checkParsingError(e error, msg string) {
+	if e != nil {
+		log.Printf("%v parsing error: %v\n", msg, e)
+	}
+}
+
+func (m *Memory) parse() {
 	file, err := os.Open("/proc/meminfo")
 	if err != nil {
 		log.Fatal(err)
@@ -39,28 +46,19 @@ func (m *Memory) parse() *Memory {
 		switch {
 		case strings.HasPrefix(str, "MemTotal"):
 			m.total, err = strconv.Atoi(strings.Trim(str, "MemTotal: kB\n"))
-			if err != nil {
-				log.Printf("MemTotal parsing error: %v\n", err)
-			}
+			checkParsingError(err, "MemTotal")
 		case strings.HasPrefix(str, "MemFree"):
 			m.free, err = strconv.Atoi(strings.Trim(str, "MemFree: kB\n"))
-			if err != nil {
-				log.Printf("MemFree parsing error: %v\n", err)
-			}
+			checkParsingError(err, "MemFree")
 		case strings.HasPrefix(str, "Cached"):
 			m.cache, err = strconv.Atoi(strings.Trim(str, "Cached: kB\n"))
-			if err != nil {
-				log.Printf("Cached parsing error: %v\n", err)
-			}
+			checkParsingError(err, "Cached")
 		case strings.HasPrefix(str, "Buffers"):
 			m.buffers, err = strconv.Atoi(strings.Trim(str, "Buffers: kB\n"))
-			if err != nil {
-				log.Printf("Buffers parsing error: %v\n", err)
-			}
+			checkParsingError(err, "Buffers")
 		}
 	}
 	m.used = m.total - m.cache - m.free - m.buffers
-	return m
 }
 
 func (cpu *CPU) parse() *CPU {
@@ -74,42 +72,35 @@ func (cpu *CPU) parse() *CPU {
 	str = strings.Trim(str, "cpu ")
 	strSlice := strings.Split(str, " ")
 	cpu.user, err = strconv.Atoi(strSlice[0])
-	if err != nil {
-		log.Printf("User CPU parsing error: %v\n", err)
-	}
+	checkParsingError(err, "UserCPU")
 	cpu.nice, err = strconv.Atoi(strSlice[1])
-	if err != nil {
-		log.Printf("Nice CPU parsing error: %v\n", err)
-	}
+	checkParsingError(err, "NiceCPU")
 	cpu.sys, err = strconv.Atoi(strSlice[2])
-	if err != nil {
-		log.Printf("Sys CPU parsing error: %v\n", err)
-	}
+	checkParsingError(err, "SysCPU")
 	cpu.idle, err = strconv.Atoi(strSlice[3])
-	if err != nil {
-		log.Printf("IDLE CPU parsing error: %v\n", err)
-	}
+	checkParsingError(err, "IdleCPU")
 	return cpu
 }
 
-func (cpu *CPU) measureUsage() float64 {
+func (cpu *CPU) utilization() {
 	cpuBefore := CPU{}
 	cpuBefore.parse()
 	time.Sleep(time.Second)
 	cpuAfter := CPU{}
 	cpuAfter.parse()
-	cpuDiff := CPU{}
-	cpuDiff.user = cpuAfter.user - cpuBefore.user
-	cpuDiff.sys = cpuAfter.sys - cpuBefore.sys
-	cpuDiff.nice = cpuAfter.nice - cpuBefore.nice
-	cpuDiff.idle = cpuAfter.idle - cpuBefore.idle
-	avg := float64(cpuDiff.user + cpuDiff.sys + cpuDiff.nice) /
+	cpuDiff := CPU{
+		user	:		cpuAfter.user - cpuBefore.user,
+		sys		:		cpuAfter.sys - cpuBefore.sys,
+		nice	: 	cpuAfter.nice - cpuBefore.nice,
+		idle	:		cpuAfter.idle - cpuBefore.idle,
+	}
+	cpu.utl = float64(cpuDiff.user + cpuDiff.sys + cpuDiff.nice) /
 				 float64(cpuDiff.user + cpuDiff.sys + cpuDiff.nice + cpuDiff.idle)*100.0
-	return avg
 }
 
 func main() {
 	mem, cpu := Memory{}, CPU{}
 	mem.parse()
-	fmt.Printf("%v/%vMB %.3v%%\n", mem.used/1024, mem.total/1024, cpu.measureUsage())
+	cpu.utilization()
+	fmt.Printf("%v/%vMB %.3v%%\n", mem.used/1024, mem.total/1024, cpu.utl)
 }
