@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"flag"
 )
 
 //Memory - type for showing memory usage
@@ -82,10 +83,10 @@ func (cpu *CPU) parse() *CPU {
 	return cpu
 }
 
-func (cpu *CPU) utilization() {
+func (cpu *CPU) utilization(interval *int) {
 	cpuBefore := CPU{}
 	cpuBefore.parse()
-	time.Sleep(time.Second)
+	time.Sleep(time.Duration(*interval) * time.Second)
 	cpuAfter := CPU{}
 	cpuAfter.parse()
 	cpuDiff := CPU{
@@ -101,6 +102,9 @@ func (cpu *CPU) utilization() {
 func main() {
 	mem, cpu := Memory{}, CPU{}
 	mem.parse()
-	cpu.utilization()
+	var interval = flag.Int("interval", 2,
+													"Interval for calculate CPU utilization, 2sec by default")
+	flag.Parse()
+	cpu.utilization(interval)
 	fmt.Printf("%v/%vMB %.3v%%\n", mem.used/1024, mem.total/1024, cpu.utl)
 }
