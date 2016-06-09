@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 	"flag"
+	"math"
 )
 
 //Memory - type for showing memory usage
@@ -86,6 +87,9 @@ func (cpu *CPU) parse() *CPU {
 func (cpu *CPU) utilization(interval *int) {
 	cpuBefore := CPU{}
 	cpuBefore.parse()
+	if *interval < 1 {
+		*interval = 1
+	}
 	time.Sleep(time.Duration(*interval) * time.Second)
 	cpuAfter := CPU{}
 	cpuAfter.parse()
@@ -97,14 +101,30 @@ func (cpu *CPU) utilization(interval *int) {
 	}
 	cpu.utl = float64(cpuDiff.user + cpuDiff.sys + cpuDiff.nice) /
 				 float64(cpuDiff.user + cpuDiff.sys + cpuDiff.nice + cpuDiff.idle)*100.0
+	cpu.utl = round(cpu.utl, 1)
+}
+
+func powerline(value float64) ([]byte) {
+	line := []byte("▁▂▃▄▅▆▇█")
+	tick := len(line) / 3
+	tickPosition := (tick * int(value)) / 100
+	return line[tickPosition*3:tickPosition*3+3]
+}
+
+func round(value float64, offset int) (float64) {
+	shift := math.Pow(10, float64(offset))
+	return math.Floor((value * shift)+.5) / shift;
 }
 
 func main() {
 	mem, cpu := Memory{}, CPU{}
-	mem.parse()
 	var interval = flag.Int("interval", 2,
 													"Interval for calculate CPU utilization, 2sec by default")
 	flag.Parse()
 	cpu.utilization(interval)
-	fmt.Printf("%v/%vMB %.3v%%\n", mem.used/1024, mem.total/1024, cpu.utl)
+	mem.parse()
+	cpuLine := powerline(cpu.utl)
+	memLine := powerline(float64(mem.used) / float64(mem.total) * 100)
+	fmt.Printf("%v/%vMB %v %.1f%% %v\n", mem.used/1024, mem.total/1024,
+							string(memLine), cpu.utl, string(cpuLine))
 }
