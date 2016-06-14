@@ -95,12 +95,13 @@ func (cpu *CPU) utilization(interval *int) {
 	cpuAfter.parse()
 	cpuDiff := CPU{
 		user	:		cpuAfter.user - cpuBefore.user,
-		sys		:		cpuAfter.sys - cpuBefore.sys,
-		nice	: 	cpuAfter.nice - cpuBefore.nice,
+		sys 	:		cpuAfter.sys - cpuBefore.sys,
+		nice	: 		cpuAfter.nice - cpuBefore.nice,
 		idle	:		cpuAfter.idle - cpuBefore.idle,
 	}
 	cpu.utl = float64(cpuDiff.user + cpuDiff.sys + cpuDiff.nice) /
-				 float64(cpuDiff.user + cpuDiff.sys + cpuDiff.nice + cpuDiff.idle)*100.0
+				float64(cpuDiff.user + cpuDiff.sys + cpuDiff.nice +
+						cpuDiff.idle)*100.0
 	cpu.utl = round(cpu.utl, 1)
 }
 
@@ -116,7 +117,8 @@ func powerline(value float64, background, foreground *string) string {
 		colorLine = "#[fg=yellow]"
 	}
 	return fmt.Sprintf("%s%s#[bg=%s,fg=%s]", colorLine,
-											line[tickPosition*3:tickPosition*3+3], *background, *foreground)
+						line[tickPosition*3:tickPosition*3+3],
+						*background, *foreground)
 }
 
 func round(value float64, offset int) (float64) {
@@ -126,18 +128,18 @@ func round(value float64, offset int) (float64) {
 
 var interval = flag.Int("i", 2,	"Interval for calculating CPU utilization")
 var background = flag.String("b", "black", "Background color for cpu " +
-														"and mem status bar")
+							"and mem status bar")
 var foreground = flag.String("f", "white", "Foreground color for cpu " +
-														"and mem status bar")
+							"and mem status bar")
 func main() {
 	flag.Parse()
 	mem, cpu := Memory{}, CPU{}
 	cpu.utilization(interval)
 	mem.parse()
 	cpuLine := powerline(cpu.utl, background, foreground)
-	memLine := powerline(float64(mem.used) / float64(mem.total) * 100, background,
-												foreground)
+	memLine := powerline(float64(mem.used) / float64(mem.total) * 100,
+						background,foreground)
 	fmt.Printf("#[fg=%s,bg=%s] %v/%vMB %v %.1f%% %v%s", *foreground, *background,
-							mem.used/1024, mem.total/1024, string(memLine), cpu.utl,
-							string(cpuLine), "#[default]")
+				mem.used/1024, mem.total/1024, string(memLine), cpu.utl,
+				string(cpuLine), "#[default]")
 }
