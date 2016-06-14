@@ -104,11 +104,19 @@ func (cpu *CPU) utilization(interval *int) {
 	cpu.utl = round(cpu.utl, 1)
 }
 
-func powerline(value float64) ([]byte) {
+func powerline(value float64, background, foreground *string) string {
 	line := []byte("▁▂▃▄▅▆▇█")
 	tick := len(line) / 3
 	tickPosition := (tick * int(value)) / 100
-	return line[tickPosition*3:tickPosition*3+3]
+	colorLine := "#[fg=green]"
+	switch {
+	case value > 75:
+		colorLine = "#[fg=red]"
+	case value > 50:
+		colorLine = "#[fg=yellow]"
+	}
+	return fmt.Sprintf("%s%s#[bg=%s,fg=%s]", colorLine,
+											line[tickPosition*3:tickPosition*3+3], *background, *foreground)
 }
 
 func round(value float64, offset int) (float64) {
@@ -116,15 +124,20 @@ func round(value float64, offset int) (float64) {
 	return math.Floor((value * shift)+.5) / shift;
 }
 
+var interval = flag.Int("i", 2,	"Interval for calculating CPU utilization")
+var background = flag.String("b", "black", "Background color for cpu " +
+														"and mem status bar")
+var foreground = flag.String("f", "white", "Foreground color for cpu " +
+														"and mem status bar")
 func main() {
-	mem, cpu := Memory{}, CPU{}
-	var interval = flag.Int("interval", 2,
-													"Interval for calculate CPU utilization, 2sec by default")
 	flag.Parse()
+	mem, cpu := Memory{}, CPU{}
 	cpu.utilization(interval)
 	mem.parse()
-	cpuLine := powerline(cpu.utl)
-	memLine := powerline(float64(mem.used) / float64(mem.total) * 100)
-	fmt.Printf("%v/%vMB %v %.1f%% %v\n", mem.used/1024, mem.total/1024,
-							string(memLine), cpu.utl, string(cpuLine))
+	cpuLine := powerline(cpu.utl, background, foreground)
+	memLine := powerline(float64(mem.used) / float64(mem.total) * 100, background,
+												foreground)
+	fmt.Printf("#[fg=%s,bg=%s] %v/%vMB %v %.1f%% %v%s", *foreground, *background,
+							mem.used/1024, mem.total/1024, string(memLine), cpu.utl,
+							string(cpuLine), "#[default]")
 }
