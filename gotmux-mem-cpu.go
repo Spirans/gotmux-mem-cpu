@@ -116,9 +116,9 @@ func powerline(value float64, background, foreground *string) string {
 	case value > 50:
 		colorLine = "#[fg=yellow]"
 	}
-	return fmt.Sprintf("%s%s#[bg=%s,fg=%s]", colorLine,
+	return fmt.Sprintf("%s%s#[fg=%s,bg=%s]", colorLine,
 						line[tickPosition*3:tickPosition*3+3],
-						*background, *foreground)
+						*foreground, *background)
 }
 
 func round(value float64, offset int) (float64) {
@@ -126,7 +126,8 @@ func round(value float64, offset int) (float64) {
 	return math.Floor((value * shift)+.5) / shift;
 }
 
-var interval = flag.Int("i", 2,	"Interval for calculating CPU utilization")
+var interval = flag.Int("i", 2,	"Interval in seconds for calculating CPU " +
+							"utilization")
 var background = flag.String("b", "black", "Background color for cpu " +
 							"and mem status bar")
 var foreground = flag.String("f", "white", "Foreground color for cpu " +
