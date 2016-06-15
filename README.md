@@ -61,7 +61,7 @@ Usage of gotmux-mem-cpu:
   -f string
         Foreground color for cpu and mem status bar (default "white")
   -i int
-        Interval for calculating CPU utilization (default 2)
+        Interval in seconds for calculating CPU utilization (default 2)
 
 ```
 
