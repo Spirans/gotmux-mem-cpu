@@ -43,8 +43,11 @@ func (m *Memory) parse() {
 	}
 	defer file.Close()
 	fileRead := bufio.NewReader(file)
-	for i := 0; i < 5; i++ {
-		str, _ := fileRead.ReadString(10)
+	for {
+		str, err := fileRead.ReadString('\n')
+		if err != nil {
+			break
+		}
 		switch {
 		case strings.HasPrefix(str, "MemTotal"):
 			m.total, err = strconv.Atoi(strings.Trim(str, "MemTotal: kB\n"))
@@ -70,7 +73,7 @@ func (cpu *CPU) parse() *CPU {
 	}
 	defer file.Close()
 	fileRead := bufio.NewReader(file)
-	str, _ := fileRead.ReadString(10)
+	str, _ := fileRead.ReadString('\n')
 	str = strings.Trim(str, "cpu ")
 	strSlice := strings.Split(str, " ")
 	cpu.user, err = strconv.Atoi(strSlice[0])
