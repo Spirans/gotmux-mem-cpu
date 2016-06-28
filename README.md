@@ -49,7 +49,7 @@ sudo cp gotmux-mem-cpu /usr/local/bin
 ```
 or 
 
-download gotmux-mem-cpu for your architecture from this repository and put it in the directory, which is in the $PATH
+download gotmux-mem-cpu for your architecture from the repository and put it in the directory, which is in the $PATH
 
 Configuring
 -----------
