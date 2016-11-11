@@ -38,8 +38,8 @@ The link to source code of [monitor](https://github.com/Spirans/gotmux-mem-cpu).
 Build & install
 -----
 ```
-cd <source dir>
-go install gotmux-mem-cpu
+go get -u github.com/Spirans/gotmux-mem-cpu
+go install github.com/Spirans/gotmux-mem-cpu
 ```
 or
 ```
