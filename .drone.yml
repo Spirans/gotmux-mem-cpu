@@ -8,5 +8,5 @@ pipeline:
 
   notify:
     image: plugins/slack
-    channel: @v.stepanov
+    channel: v.stepanov
     username: drone
