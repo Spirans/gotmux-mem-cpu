@@ -6,7 +6,7 @@ pipeline:
       - go build
       - go test
 
-notify:
-  image: plugins/slack
-  channel: @v.stepanov
-  username: drone
+  notify:
+    image: plugins/slack
+    channel: @v.stepanov
+    username: drone
